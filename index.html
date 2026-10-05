@@ -20,7 +20,7 @@
       <h2 id="input-title">Como você informa o consumo?</h2>
       <div class="tabs" role="group" aria-label="Modo de cálculo">
         <button id="tab-absolute" type="button" aria-pressed="true">Consumo da viagem</button>
-        <button id="tab-panel" type="button" aria-pressed="false">Média do painel</button>
+        <button id="tab-panel" type="button" aria-pressed="false">Consumo</button>
       </div>
       <details class="settings" id="settings">
         <summary>Configurar preços e bateria</summary>
@@ -36,16 +36,16 @@
       </details>
       <form id="calc-form" novalidate>
         <div class="fields">
-          <div class="field full"><label for="distance">Distância da viagem <span class="hint">quilômetros (km)</span></label><input id="distance" inputmode="decimal" autocomplete="off" placeholder="Ex.: 120" aria-describedby="error"></div>
-          <div class="field" data-mode="absolute"><label for="fuel">Gasolina consumida <span class="hint">litros (L)</span></label><input id="fuel" inputmode="decimal" autocomplete="off" placeholder="Ex.: 4,5"></div>
+          <div class="field full" data-mode="absolute"><label for="distance">Distância da viagem <span class="hint">quilômetros (km)</span></label><input id="distance" inputmode="decimal" autocomplete="off" placeholder="Ex.: 120" aria-describedby="error"></div>
+          <div class="field"><label for="fuelRate">Média de gasolina <span class="hint">litros por 100 km (L/100 km)</span></label><input id="fuelRate" inputmode="decimal" autocomplete="off" placeholder="Ex.: 5,0"></div>
+          <div class="field" data-mode="absolute"><label for="remainingRange">Autonomia restante <span class="hint">quilômetros (km)</span></label><input id="remainingRange" inputmode="decimal" autocomplete="off" placeholder="Ex.: 450"></div>
           <div class="field" data-mode="absolute"><label for="batteryStart">Bateria ao sair <span class="hint">percentual disponível (%)</span></label><input id="batteryStart" inputmode="decimal" autocomplete="off" placeholder="Ex.: 100"></div>
           <div class="field" data-mode="absolute"><label for="batteryEnd">Bateria ao chegar <span class="hint">percentual disponível (%)</span></label><input id="batteryEnd" inputmode="decimal" autocomplete="off" placeholder="Ex.: 25"></div>
           <div class="field full" data-mode="absolute"><span class="hint">A energia usada é estimada pela queda do percentual da bateria multiplicada pela capacidade configurada. Informe percentuais entre 0% e 100%.</span></div>
-          <div class="field" data-mode="panel" hidden><label for="panelFuel">Média de gasolina <span class="hint">L/100 km · painel</span></label><input id="panelFuel" inputmode="decimal" autocomplete="off" placeholder="Ex.: 4,8"></div>
           <div class="field" data-mode="panel" hidden><label for="panelEnergy">Média elétrica <span class="hint">kWh/100 km · painel</span></label><input id="panelEnergy" inputmode="decimal" autocomplete="off" placeholder="Ex.: 16,5"></div>
         </div>
         <div class="error" id="error" role="alert"></div>
-        <div class="actions"><button class="primary" type="submit">Calcular viagem</button><button class="secondary" id="clear" type="button">Limpar</button></div>
+        <div class="actions"><button class="primary" id="calc-button" type="submit">Calcular viagem</button><button class="secondary" id="clear" type="button">Limpar</button></div>
       </form>
     </section>
     <section class="card results" id="results" aria-live="polite" aria-labelledby="result-title">
@@ -53,8 +53,10 @@
       <div class="summary">
         <div class="metric primary-metric"><span class="label">Custo total estimado</span><strong id="total">—</strong></div>
         <div class="metric"><span class="label">Custo por quilômetro</span><strong id="costKm">—</strong></div>
+        <div class="metric panel-only" hidden><span class="label">Custo por 100 km</span><strong id="cost100">—</strong></div>
         <div class="metric"><span class="label">Combustível</span><strong id="fuelEff">—</strong></div>
         <div class="metric"><span class="label">Equivalência energética</span><strong id="equiv">—</strong></div>
+        <div class="metric"><span class="label">Gasolina restante estimada</span><strong id="fuelRemaining">—</strong></div>
       </div>
       <div class="breakdown" id="breakdown"></div>
       <div class="note"><strong>Sobre a equivalência:</strong> usamos 8,89 kWh por litro de gasolina como referência energética aproximada. Ela serve para comparação e não representa a autonomia real do veículo.</div>
@@ -72,26 +74,31 @@
       const settingIds=['fuelPrice','energyPrice','batteryCapacity'];
       try{const saved=JSON.parse(localStorage.getItem('phev-settings')||'{}');settingIds.forEach(id=>{if(typeof saved[id]==='string')$(id).value=saved[id]})}catch{}
       $('save-settings').addEventListener('click',()=>{try{localStorage.setItem('phev-settings',JSON.stringify(Object.fromEntries(settingIds.map(id=>[id,$(id).value.trim()]))));$('save-status').textContent='Configurações salvas neste aparelho.'}catch{$('save-status').textContent='Não foi possível salvar. Os valores continuam disponíveis nesta página.'}});
-      function selectMode(next){mode=next;for(const m of ['absolute','panel']){$('tab-'+m).setAttribute('aria-pressed',String(mode===m))}fields.forEach(el=>{el.hidden=el.dataset.mode!==mode});$('results').classList.remove('show');showError('')}
+      function selectMode(next){mode=next;for(const m of ['absolute','panel']){$('tab-'+m).setAttribute('aria-pressed',String(mode===m))}fields.forEach(el=>{el.hidden=el.dataset.mode!==mode});$('results').classList.remove('show');$('calc-button').textContent=mode==='panel'?'Calcular consumo':'Calcular viagem';showError('')}
       $('tab-absolute').addEventListener('click',()=>selectMode('absolute'));$('tab-panel').addEventListener('click',()=>selectMode('panel'));
       $('calc-form').addEventListener('submit',event=>{event.preventDefault();showError('');const d=number('distance'),pf=number('fuelPrice'),pe=number('energyPrice');let fuel,energy;
-        const required=mode==='absolute'?['distance','fuel','batteryStart','batteryEnd','fuelPrice','energyPrice','batteryCapacity']:['distance','panelFuel','panelEnergy','fuelPrice','energyPrice'];
+        const required=mode==='absolute'?['distance','fuelRate','remainingRange','batteryStart','batteryEnd','fuelPrice','energyPrice','batteryCapacity']:['fuelRate','panelEnergy','fuelPrice','energyPrice'];
         for(const id of required){const el=$(id),v=number(id);if(v===null||!Number.isFinite(v)){el.focus();showError('Preencha todos os campos do modo selecionado com números válidos.');return}if(v<0){el.focus();showError('Os valores não podem ser negativos.');return}}
-        if(d===0){$('distance').focus();showError('A distância precisa ser maior que zero.');return}
+        if(mode==='absolute'&&d===0){$('distance').focus();showError('A distância precisa ser maior que zero.');return}
+        const fuelRate=number('fuelRate');
         if(mode==='absolute'){
           const start=number('batteryStart'),end=number('batteryEnd'),capacity=number('batteryCapacity');
           if(start>100||end>100){$('batteryStart').focus();showError('A carga da bateria deve estar entre 0% e 100%.');return}
           if(end>start){$('batteryEnd').focus();showError('A carga ao chegar não pode superar a carga ao sair para este cálculo. Confira os percentuais informados.');return}
           if(capacity===0){$('batteryCapacity').focus();showError('Informe uma capacidade de bateria maior que zero nas configurações.');return}
-          fuel=number('fuel');energy=capacity*(start-end)/100;
-        }else{fuel=number('panelFuel')*d/100;energy=number('panelEnergy')*d/100}
-        const total=fuel*pf+energy*pe,costKm=total/d,fuelEff=fuel===0?null:d/fuel,energyEquivalent=fuel+energy/8.89,equiv=energyEquivalent===0?null:d/energyEquivalent;
-        $('total').textContent=money(total);$('costKm').textContent=money(costKm)+'/km';$('fuelEff').textContent=fuelEff===null?'Modo 100% elétrico':fmt(fuelEff)+' km/L';$('equiv').textContent=equiv===null?'Sem consumo informado':fmt(equiv)+' km/L eq.';
-        $('breakdown').innerHTML=`<p><span>Distância</span><b>${fmt(d,1)} km</b></p><p><span>Gasolina estimada</span><b>${fmt(fuel,2)} L · ${money(fuel*pf)}</b></p><p><span>Energia estimada</span><b>${fmt(energy,2)} kWh · ${money(energy*pe)}</b></p>`;
-        $('formula').innerHTML=mode==='absolute'?`Energia estimada = capacidade da bateria × (carga ao sair − carga ao chegar) ÷ 100. Custo total = (litros × R$/L) + (kWh × R$/kWh).`:`Consumo estimado a partir do painel: L/100 km e kWh/100 km × distância. Custo total = distância × [(L/100 × R$/L) + (kWh/100 × R$/kWh)].`;
+          fuel=fuelRate*d/100;energy=capacity*(start-end)/100;
+        }else{energy=number('panelEnergy')}
+        const fuelLeft=mode==='absolute'?fuelRate*number('remainingRange')/100:null;
+        const total=mode==='panel'?null:fuel*pf+energy*pe,cost100=mode==='panel'?fuelRate*pf+energy*pe:null,costKm=mode==='panel'?cost100/100:total/d;
+        const fuelEff=fuelRate===0?null:(mode==='panel'?100/fuelRate:d/fuel),energyEquivalent=mode==='panel'?fuelRate+energy/8.89:fuel+energy/8.89,equiv=energyEquivalent===0?null:(mode==='panel'?100/energyEquivalent:d/energyEquivalent);
+        $('result-title').textContent=mode==='panel'?'Consumo instantâneo estimado':'Resultado da viagem';
+        document.querySelector('.primary-metric').hidden=mode==='panel';document.querySelector('.panel-only').hidden=mode!=='panel';$('fuelRemaining').closest('.metric').hidden=mode==='panel';
+        $('total').textContent=total===null?'—':money(total);$('costKm').textContent=money(costKm)+'/km';$('cost100').textContent=cost100===null?'—':money(cost100);$('fuelEff').textContent=fuelEff===null?'Modo 100% elétrico':fmt(fuelEff)+' km/L';$('equiv').textContent=equiv===null?'Sem consumo informado':fmt(equiv)+' km/L eq.';$('fuelRemaining').textContent=mode==='panel'?'—':fmt(fuelLeft)+' L';
+        $('breakdown').innerHTML=mode==='absolute'?`<p><span>Distância percorrida</span><b>${fmt(d,1)} km</b></p><p><span>Gasolina consumida estimada</span><b>${fmt(fuel,2)} L · ${money(fuel*pf)}</b></p><p><span>Autonomia restante</span><b>${fmt(number('remainingRange'),1)} km · ~${fmt(fuelLeft,2)} L</b></p><p><span>Energia estimada</span><b>${fmt(energy,2)} kWh · ${money(energy*pe)}</b></p>`:`<p><span>Consumo de gasolina no painel</span><b>${fmt(fuelRate,2)} L/100 km</b></p><p><span>Consumo elétrico no painel</span><b>${fmt(energy,2)} kWh/100 km</b></p><p><span>Custo combinado estimado</span><b>${money(cost100)} por 100 km</b></p>`;
+        $('formula').innerHTML=mode==='absolute'?`Gasolina usada = (média em L/100 km × distância percorrida) ÷ 100. Gasolina restante estimada = (média em L/100 km × autonomia restante) ÷ 100. Energia estimada = capacidade da bateria × (carga ao sair − carga ao chegar) ÷ 100.`:`Este modo não usa distância de viagem. Custo/100 km = (L/100 km × R$/L) + (kWh/100 km × R$/kWh). Custo/km = custo/100 km ÷ 100.`;
         $('results').classList.add('show');$('results').scrollIntoView({behavior:'smooth',block:'start'});
       });
-      $('clear').addEventListener('click',()=>{$('calc-form').reset();$('results').classList.remove('show');showError('');$('distance').focus()});
+      $('clear').addEventListener('click',()=>{$('calc-form').reset();$('results').classList.remove('show');showError('');$('fuelRate').focus()});
     })();
   </script>
 </body>
