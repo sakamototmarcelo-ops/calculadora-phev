@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10221d">
+  <title>Calculadora PHEV</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1512;--panel:#14221d;--panel2:#192b24;--line:#294036;--text:#f2f6f2;--muted:#a8b9ae;--green:#a8e6bd;--green2:#153e2b;--blue:#a8d9f2;--gold:#f3d995;--red:#ffaaa2;--radius:20px;--shadow:0 18px 50px #0003}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 40% -10%,#1d392c 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+    .wrap{max-width:760px;margin:0 auto;padding:24px 16px calc(32px + env(safe-area-inset-bottom))}.hero{padding:14px 4px 22px}.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--green);font-weight:750}.hero h1{font-size:clamp(2rem,8vw,3rem);line-height:1.06;margin:8px 0 10px;letter-spacing:-.04em}.hero p{margin:0;color:var(--muted);max-width:56ch}.card{background:linear-gradient(145deg,#172820,#12201a);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:14px 0;box-shadow:var(--shadow)}h2{font-size:1.12rem;margin:0 0 14px}h3{font-size:1rem;margin:0 0 8px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:5px;background:#0b1512;border:1px solid var(--line);border-radius:15px;margin:12px 0 18px}.tabs button{font:inherit;font-weight:700;min-height:48px;border:0;border-radius:11px;background:transparent;color:var(--muted);padding:8px}.tabs button[aria-pressed="true"]{background:var(--green2);color:#d9ffe5;box-shadow:inset 0 0 0 1px #397850}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{min-width:0}.field.full{grid-column:1/-1}label{display:block;font-size:.88rem;font-weight:650;margin:0 0 6px}.hint{display:block;color:var(--muted);font-size:.77rem;font-weight:400;margin-top:2px}input{width:100%;min-height:54px;border-radius:13px;border:1px solid #395347;background:#0b1712;color:var(--text);font:inherit;font-size:1.08rem;padding:12px 14px;outline:none}input:focus{border-color:var(--green);box-shadow:0 0 0 3px #8be6ae25}input::placeholder{color:#82948a}.settings{margin:0 0 17px;border:1px solid var(--line);border-radius:15px;background:#101b16;overflow:hidden}.settings summary{cursor:pointer;list-style:none;min-height:52px;padding:13px 15px;font-weight:700;color:#d7e9dd}.settings summary::-webkit-details-marker{display:none}.settings summary:after{content:'＋';float:right;color:var(--green)}.settings[open] summary:after{content:'−'}.settings-content{padding:0 14px 14px}.settings-note{font-size:.8rem;color:var(--muted);margin:0 0 12px}.save-status{font-size:.8rem;color:var(--green);align-self:center}.actions{display:flex;gap:10px;margin-top:17px}.primary,.secondary{min-height:52px;border-radius:14px;padding:12px 18px;font:inherit;font-weight:750;cursor:pointer}.primary{flex:1;color:#102019;background:var(--green);border:0}.primary:active{transform:scale(.99)}.secondary{color:var(--text);background:transparent;border:1px solid var(--line)}.error{display:none;margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid #7a4642;background:#371f1d;color:#ffd3cd}.error.show{display:block}.results{display:none}.results.show{display:block}.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:var(--panel2);border:1px solid #30483c;border-radius:16px;padding:15px;min-width:0}.metric.primary-metric{grid-column:1/-1;background:linear-gradient(130deg,#1c4731,#163326);border-color:#3a7552}.metric .label{display:block;font-size:.82rem;color:#c3d1c8}.metric strong{display:block;font-size:clamp(1.35rem,6vw,2rem);letter-spacing:-.03em;margin-top:4px;overflow-wrap:anywhere}.metric.primary-metric strong{font-size:clamp(2rem,9vw,3rem);color:#c9f4d5}.breakdown{margin-top:12px;color:var(--muted);font-size:.9rem}.breakdown p{display:flex;justify-content:space-between;gap:12px;margin:6px 0}.breakdown b{color:var(--text);text-align:right}.note{background:#17271f;border-radius:14px;padding:13px 14px;color:var(--muted);font-size:.86rem;margin-top:14px}.note strong{color:var(--gold)}.formula{border-top:1px solid var(--line);padding-top:15px;margin-top:16px;color:var(--muted);font-size:.82rem}.formula code{color:#d5e7da;white-space:normal;overflow-wrap:anywhere}.foot{text-align:center;color:#81948a;font-size:.78rem;padding:10px 0 4px}
+    @media(max-width:430px){.wrap{padding-left:13px;padding-right:13px}.card{padding:17px}.fields{gap:10px}.actions{flex-direction:column}.secondary{width:100%}.tabs button{font-size:.92rem}}
+    @media(prefers-reduced-motion:no-preference){.card{animation:rise .35s ease both}@keyframes rise{from{opacity:.7;transform:translateY(5px)}to{opacity:1;transform:none}}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero"><span class="eyebrow">Gestão de viagem · PHEV</span><h1>Quanto custa rodar?</h1><p>Combine gasolina e energia elétrica para estimar o custo real da viagem e a eficiência do seu híbrido plug-in.</p></header>
+    <section class="card" aria-labelledby="input-title">
+      <h2 id="input-title">Como você informa o consumo?</h2>
+      <div class="tabs" role="group" aria-label="Modo de cálculo">
+        <button id="tab-absolute" type="button" aria-pressed="true">Consumo da viagem</button>
+        <button id="tab-panel" type="button" aria-pressed="false">Média do painel</button>
+      </div>
+      <details class="settings" id="settings">
+        <summary>Configurar preços e bateria</summary>
+        <div class="settings-content">
+          <p class="settings-note">Estes valores ficam salvos neste aparelho e podem ser alterados quando necessário.</p>
+          <div class="fields">
+            <div class="field"><label for="fuelPrice">Preço da gasolina <span class="hint">R$/litro</span></label><input id="fuelPrice" inputmode="decimal" autocomplete="off" placeholder="Ex.: 6,09"></div>
+            <div class="field"><label for="energyPrice">Tarifa de energia <span class="hint">R$/kWh</span></label><input id="energyPrice" inputmode="decimal" autocomplete="off" placeholder="Ex.: 0,95"></div>
+            <div class="field full"><label for="batteryCapacity">Capacidade útil da bateria <span class="hint">quilowatt-hora (kWh)</span></label><input id="batteryCapacity" inputmode="decimal" autocomplete="off" placeholder="Ex.: 18,3"></div>
+          </div>
+          <div class="actions"><button class="secondary" id="save-settings" type="button">Salvar configurações</button><span class="save-status" id="save-status" aria-live="polite"></span></div>
+        </div>
+      </details>
+      <form id="calc-form" novalidate>
+        <div class="fields">
+          <div class="field full"><label for="distance">Distância da viagem <span class="hint">quilômetros (km)</span></label><input id="distance" inputmode="decimal" autocomplete="off" placeholder="Ex.: 120" aria-describedby="error"></div>
+          <div class="field" data-mode="absolute"><label for="fuel">Gasolina consumida <span class="hint">litros (L)</span></label><input id="fuel" inputmode="decimal" autocomplete="off" placeholder="Ex.: 4,5"></div>
+          <div class="field" data-mode="absolute"><label for="batteryStart">Bateria ao sair <span class="hint">percentual disponível (%)</span></label><input id="batteryStart" inputmode="decimal" autocomplete="off" placeholder="Ex.: 100"></div>
+          <div class="field" data-mode="absolute"><label for="batteryEnd">Bateria ao chegar <span class="hint">percentual disponível (%)</span></label><input id="batteryEnd" inputmode="decimal" autocomplete="off" placeholder="Ex.: 25"></div>
+          <div class="field full" data-mode="absolute"><span class="hint">A energia usada é estimada pela queda do percentual da bateria multiplicada pela capacidade configurada. Informe percentuais entre 0% e 100%.</span></div>
+          <div class="field" data-mode="panel" hidden><label for="panelFuel">Média de gasolina <span class="hint">L/100 km · painel</span></label><input id="panelFuel" inputmode="decimal" autocomplete="off" placeholder="Ex.: 4,8"></div>
+          <div class="field" data-mode="panel" hidden><label for="panelEnergy">Média elétrica <span class="hint">kWh/100 km · painel</span></label><input id="panelEnergy" inputmode="decimal" autocomplete="off" placeholder="Ex.: 16,5"></div>
+        </div>
+        <div class="error" id="error" role="alert"></div>
+        <div class="actions"><button class="primary" type="submit">Calcular viagem</button><button class="secondary" id="clear" type="button">Limpar</button></div>
+      </form>
+    </section>
+    <section class="card results" id="results" aria-live="polite" aria-labelledby="result-title">
+      <h2 id="result-title">Resultado da viagem</h2>
+      <div class="summary">
+        <div class="metric primary-metric"><span class="label">Custo total estimado</span><strong id="total">—</strong></div>
+        <div class="metric"><span class="label">Custo por quilômetro</span><strong id="costKm">—</strong></div>
+        <div class="metric"><span class="label">Combustível</span><strong id="fuelEff">—</strong></div>
+        <div class="metric"><span class="label">Equivalência energética</span><strong id="equiv">—</strong></div>
+      </div>
+      <div class="breakdown" id="breakdown"></div>
+      <div class="note"><strong>Sobre a equivalência:</strong> usamos 8,89 kWh por litro de gasolina como referência energética aproximada. Ela serve para comparação e não representa a autonomia real do veículo.</div>
+      <div class="formula" id="formula"></div>
+    </section>
+    <footer class="foot">Os valores são estimativas baseadas nos dados informados.</footer>
+  </main>
+  <script>
+    (()=>{
+      const $=id=>document.getElementById(id), fields=[...document.querySelectorAll('[data-mode]')];let mode='absolute';
+      const number=id=>{const raw=$(id).value.trim().replace(/\s/g,'').replace(',','.');return raw===''?null:Number(raw)};
+      const fmt=(value,digits=2)=>new Intl.NumberFormat('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(value);
+      const money=value=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value);
+      const showError=message=>{$('error').textContent=message;$('error').classList.toggle('show',!!message)};
+      const settingIds=['fuelPrice','energyPrice','batteryCapacity'];
+      try{const saved=JSON.parse(localStorage.getItem('phev-settings')||'{}');settingIds.forEach(id=>{if(typeof saved[id]==='string')$(id).value=saved[id]})}catch{}
+      $('save-settings').addEventListener('click',()=>{try{localStorage.setItem('phev-settings',JSON.stringify(Object.fromEntries(settingIds.map(id=>[id,$(id).value.trim()]))));$('save-status').textContent='Configurações salvas neste aparelho.'}catch{$('save-status').textContent='Não foi possível salvar. Os valores continuam disponíveis nesta página.'}});
+      function selectMode(next){mode=next;for(const m of ['absolute','panel']){$('tab-'+m).setAttribute('aria-pressed',String(mode===m))}fields.forEach(el=>{el.hidden=el.dataset.mode!==mode});$('results').classList.remove('show');showError('')}
+      $('tab-absolute').addEventListener('click',()=>selectMode('absolute'));$('tab-panel').addEventListener('click',()=>selectMode('panel'));
+      $('calc-form').addEventListener('submit',event=>{event.preventDefault();showError('');const d=number('distance'),pf=number('fuelPrice'),pe=number('energyPrice');let fuel,energy;
+        const required=mode==='absolute'?['distance','fuel','batteryStart','batteryEnd','fuelPrice','energyPrice','batteryCapacity']:['distance','panelFuel','panelEnergy','fuelPrice','energyPrice'];
+        for(const id of required){const el=$(id),v=number(id);if(v===null||!Number.isFinite(v)){el.focus();showError('Preencha todos os campos do modo selecionado com números válidos.');return}if(v<0){el.focus();showError('Os valores não podem ser negativos.');return}}
+        if(d===0){$('distance').focus();showError('A distância precisa ser maior que zero.');return}
+        if(mode==='absolute'){
+          const start=number('batteryStart'),end=number('batteryEnd'),capacity=number('batteryCapacity');
+          if(start>100||end>100){$('batteryStart').focus();showError('A carga da bateria deve estar entre 0% e 100%.');return}
+          if(end>start){$('batteryEnd').focus();showError('A carga ao chegar não pode superar a carga ao sair para este cálculo. Confira os percentuais informados.');return}
+          if(capacity===0){$('batteryCapacity').focus();showError('Informe uma capacidade de bateria maior que zero nas configurações.');return}
+          fuel=number('fuel');energy=capacity*(start-end)/100;
+        }else{fuel=number('panelFuel')*d/100;energy=number('panelEnergy')*d/100}
+        const total=fuel*pf+energy*pe,costKm=total/d,fuelEff=fuel===0?null:d/fuel,energyEquivalent=fuel+energy/8.89,equiv=energyEquivalent===0?null:d/energyEquivalent;
+        $('total').textContent=money(total);$('costKm').textContent=money(costKm)+'/km';$('fuelEff').textContent=fuelEff===null?'Modo 100% elétrico':fmt(fuelEff)+' km/L';$('equiv').textContent=equiv===null?'Sem consumo informado':fmt(equiv)+' km/L eq.';
+        $('breakdown').innerHTML=`<p><span>Distância</span><b>${fmt(d,1)} km</b></p><p><span>Gasolina estimada</span><b>${fmt(fuel,2)} L · ${money(fuel*pf)}</b></p><p><span>Energia estimada</span><b>${fmt(energy,2)} kWh · ${money(energy*pe)}</b></p>`;
+        $('formula').innerHTML=mode==='absolute'?`Energia estimada = capacidade da bateria × (carga ao sair − carga ao chegar) ÷ 100. Custo total = (litros × R$/L) + (kWh × R$/kWh).`:`Consumo estimado a partir do painel: L/100 km e kWh/100 km × distância. Custo total = distância × [(L/100 × R$/L) + (kWh/100 × R$/kWh)].`;
+        $('results').classList.add('show');$('results').scrollIntoView({behavior:'smooth',block:'start'});
+      });
+      $('clear').addEventListener('click',()=>{$('calc-form').reset();$('results').classList.remove('show');showError('');$('distance').focus()});
+    })();
+  </script>
+</body>
+</html>
